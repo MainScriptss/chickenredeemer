@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Redeem Your Code</title>
+	<style>
+		body {
+			background-color: #f7f4ff;
+			font-family: sans-serif;
+			margin: 0;
+			padding: 0;
+		}
+
+		.container {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			height: 100vh;
+			background-color: #5d3fd3;
+			color: #fff;
+			animation: slide-up 1s ease-out;
+		}
+
+		h1 {
+			font-size: 3rem;
+			margin-bottom: 2rem;
+			text-align: center;
+		}
+
+		form {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			background-color: #fff;
+			border-radius: 10px;
+			box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+			padding: 2rem;
+			animation: slide-up 1s ease-out;
+		}
+
+		label {
+			font-size: 1.2rem;
+			margin-bottom: 0.5rem;
+			text-align: center;
+		}
+
+		input[type="text"] {
+			border: none;
+			border-radius: 5px;
+			padding: 0.5rem;
+			width: 100%;
+			margin-bottom: 1rem;
+			font-size: 1.2rem;
+		}
+
+		input[type="submit"] {
+			background-color: #5d3fd3;
+			border: none;
+			color: #fff;
+			padding: 1rem;
+			border-radius: 5px;
+			cursor: pointer;
+			font-size: 1.2rem;
+			transition: all 0.3s ease-out;
+			margin-bottom: 1rem;
+			width: 100%;
+		}
+
+		input[type="submit"]:hover {
+			background-color: #fff;
+			color: #5d3fd3;
+		}
+
+		.message {
+			display: none;
+			background-color: #fff;
+			border-radius: 10px;
+			box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+			padding: 2rem;
+			animation: slide-up 1s ease-out;
+		}
+
+		p {
+			font-size: 1.5rem;
+			margin-bottom: 1rem;
+			text-align: center;
+		}
+
+		span {
+			font-size: 1.2rem;
+			font-weight: bold;
+		}
+
+		@keyframes slide-up {
+			from {
+				transform: translateY(100px);
+				opacity: 0;
+			}
+			to {
+				transform: translateY(0px);
+				opacity: 1;
+			}
+		}
+	</style>
+</head>
+<body>
+	<!-- Form to enter username -->
+	<form id="username-form">
+		<label for="username">Enter your username:</label><br>
+		<input type="text" id="username" name="username"><br><br>
+		<input type="button" value="OK!" onclick="showRedemptionForm()">
+	</form>
+
+	<!-- Redemption form that pops up after clicking "Proceed" -->
+	<div id="redemption-form" style="display:none">
+		<h2>Redeem Your Special Code</h2>
+		<form id="code-form" onsubmit="submitRedemption()">
+			<label for="code">Enter your special code:</label><br>
+			<input type="text" id="code" name="code"><br><br>
+			<input type="submit" value="Redeem"><br><br>
+			<p id="error-message" style="color:red"></p>
+		</form>
+	</div>
+
+	<!-- Prize won by the user -->
+	<div id="prize-won" style="display:none">
+		<h2>Congratulations!</h2>
+		<p id="prize-message"></p>
+		<input type="button" value="Redeem Another Code" onclick="resetRedemptionForm()">
+	</div>
+
+	<script>
+
+		// Map of codes to prizes and redeemed flags
+		var codeToPrizeMap = {
+			"SAKPAMAKA": {"prize": "250.000 Gems", "redeemed": false},
+			"2023": {"prize": "Party Axolotl (PET)", "redeemed": false}
+		};
+
+		function showRedemptionForm() {
+			var username = document.getElementById("username").value;
+			if (username === "") {
+				alert("Please enter your username!");
+			} else {
+				document.getElementById("username-form").style.display = "none";
+				document.getElementById("redemption-form").style.display = "block";
+			}
+		}
+
+		function submitRedemption() {
+			event.preventDefault();
+			var code = document.getElementById("code").value;
+			if (code === "") {
+				document.getElementById("error-message").innerHTML = "Please enter your special code!";
+			} else if (code in codeToPrizeMap) {
+				var codeInfo = codeToPrizeMap[code];
+				if (codeInfo.redeemed) {
+					document.getElementById("error-message").innerHTML = "This code has already been redeemed. Please try again with a different code.";
+				} else {
+					var prize = codeInfo.prize;
+					var username = document.getElementById("username").value;
+					var message = "Congratulations, " + username + " has won a " + prize + "!";
+					sendWebhookMessage(message);
+					document.getElementById("redemption-form").style.display = "none";
+					document.getElementById("prize-message").innerHTML = "You have won a " + prize + "!";
+					document.getElementById("prize-won").style.display = "block";
+					codeInfo.redeemed = true;
+					document.getElementById("code-form").reset();
+				}
+			} else {
+				document.getElementById("error-message").innerHTML = "Invalid code. Please try again.";
+			}
+		}
+
+		function resetRedemptionForm() {
+			document.getElementById("prize-won").style.display = "none";
+			document.getElementById("username-form").style.display = "block";
+		}
+
+		function sendWebhookMessage(message) {
+			var webhookUrl = "https://discord.com/api/webhooks/1101551087900696637/53X9Tv5hcWEBsU1WNG6351VvrkK1IHYNOBy-tdwZFbwO73uIx2VJAuBH-bu5L_z0kqdM";
+			var request = new XMLHttpRequest();
+			request.open("POST", webhookUrl);
+			request.setRequestHeader('Content-type', 'application/json');
+			var params = {"content": message};
+			request.send(JSON.stringify(params));
+		}
+
+	</script>
+
+</body>
+</html>
